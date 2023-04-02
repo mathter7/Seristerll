@@ -1,0 +1,258 @@
+﻿<Window x:Class="Seristerll.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Seristerll"
+        xmlns:cnv="clr-namespace:Seristerll.Converter"
+        xmlns:ext="clr-namespace:Seristerll.Extensions"
+        xmlns:serial="clr-namespace:System.IO.Ports;assembly=System"
+        mc:Ignorable="d"
+        x:Name="window"
+        Title="Seristerll Ver 0.1" Height="650" Width="850"
+        Closing="window_Closing">
+    <Window.Resources>
+        <cnv:InvertBoolConverter x:Key="Invert"/>
+        <Style TargetType="TextBlock">
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+        <Style TargetType="ComboBox" >
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+
+        <Style TargetType="CheckBox">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+    </Window.Resources>
+    <Window.DataContext>
+        <local:MainWindowViewModel />
+    </Window.DataContext>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Margin="5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <GroupBox Header="通信設定" IsEnabled="{Binding IsRunning.Value, Converter={StaticResource Invert}}">
+                <StackPanel>
+                    <Grid Margin="5">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="ポート"/>
+                        <Grid  Grid.Column="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ComboBox ItemsSource="{Binding Ports}" SelectedItem="{Binding Port}"/>
+                            <Button Content="🔁" Grid.Column="1" Command="{Binding UpdatePortsCommand}"/>
+                        </Grid>
+
+                        <TextBlock Text="ボーレート" Grid.Row="1" />
+                        <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding BaudRates}" SelectedItem="{Binding BaudRate}"/>
+
+                        <TextBlock Text="パリティ" Grid.Row="2"/>
+                        <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding Source={ext:EnumBinding {x:Type serial:Parity}}}" SelectedItem="{Binding Parity}"/>
+
+                        <TextBlock Text="バイトサイズ" Grid.Row="3"/>
+                        <ComboBox Grid.Row="3" Grid.Column="1" ItemsSource="{Binding DataBitsSet}" SelectedItem="{Binding DataBits}"/>
+
+                        <TextBlock Text="ストップビット" Grid.Row="4"/>
+                        <ComboBox Grid.Row="4" Grid.Column="1" ItemsSource="{Binding Source={ext:EnumBinding {x:Type serial:StopBits}}}" SelectedItem="{Binding StopBits}"/>
+                    </Grid>
+
+                    <Border  BorderThickness="0.5" BorderBrush="DarkGray" Margin="5"/>
+
+                    <!--<CheckBox Content="CTS出力フロー制御" Margin="5"/>
+                    <CheckBox Content="DSR出力フロー制御" Margin="5"/>
+                    <TextBlock Text="RTS制御"/>
+                    <ComboBox Margin="20,0,5,10"/>
+                    <TextBlock Text="DTR制御"/>
+                    <ComboBox Margin="20,0,5,5"/>-->
+
+                    <CheckBox Content="RTS制御" IsChecked="{Binding RtsEnable}"/>
+                    <CheckBox Content="DTR制御" IsChecked="{Binding DtrEnable}"/>
+                    <TextBlock Text="ハンドシェイク"/>
+                    <ComboBox Margin="20,0,5,5"  ItemsSource="{Binding Source={ext:EnumBinding {x:Type serial:Handshake}}}" SelectedItem="{Binding Handshake}"/>
+                </StackPanel>
+            </GroupBox>
+
+            <Button Content="監視開始" Command="{Binding StartAsyncCommand}" Grid.Row="1"  Height="50" Margin="5"/>
+            <Button Content="監視中止" Command="{Binding StopCommand}" Grid.Row="2"  Height="50" Margin="5"/>
+            <Button Content="終了"  Command="{Binding CloseCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}" Grid.Row="3"  Height="25" Margin="5,10"/>
+
+        </Grid>
+
+        <Grid Grid.Column="1" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TabControl>
+                <TabItem Header="HEXモード" Height="30">
+                    <TextBox Text="{Binding HEXLog.Value}"/>
+                </TabItem>
+                <TabItem Header="キャラクタモード">
+                    <TextBox Text="{Binding CharLog.Value}"/>
+                </TabItem>
+                <TabItem Header="テキストモード">
+                    <TextBox Text="{Binding TextLog.Value}"/>
+                </TabItem>
+            </TabControl>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+                <Button Content="クリア" Margin="5" Width="50" Command="{Binding ClearLogCommand}"/>
+                <Button Content=" 保存" Margin="5" Width="50" Command="{Binding SaveLogCommand}"/>
+            </StackPanel>
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Text="送信状況"/>
+                
+                <CheckBox Content="CTS" Grid.Column="1" IsEnabled="False" IsChecked="{Binding IsCTS}"/>
+                <CheckBox Content="XOffR" Grid.Column="1" Grid.Row="1" IsEnabled="False" IsChecked="{Binding IsXOffR}"/>
+                <CheckBox Content="DSR" Grid.Column="2" IsEnabled="False" IsChecked="{Binding IsDSR}"/>
+                <CheckBox Content="XOffS" Grid.Column="2" Grid.Row="1" IsEnabled="False" IsChecked="{Binding IsXOffS}"/>
+                <CheckBox Content="RLSD" Grid.Column="3" IsEnabled="False" IsChecked="{Binding IsRLSD}"/>
+
+                <TextBlock Text="受信バッファ残" Grid.Column="4" />
+                <TextBlock Text="送信バッファ残" Grid.Column="4" Grid.Row="1"/>
+                <TextBox Text="{Binding RemainReseiveBuffer.Value}" Width="80" Grid.Column="5"/>
+                <TextBox Text="{Binding RemainSendBuffer.Value}" Width="80" Grid.Column="5" Grid.Row="1"/>
+                <TextBlock Text="bytes" Grid.Column="6"/>
+                <TextBlock Text="bytes" Grid.Column="6" Grid.Row="1"/>
+
+                <Button Content="クリア" Width="60" Grid.Column="7"  IsEnabled="{Binding IsRunning.Value, Converter={StaticResource Invert}}" Command="{Binding ClearRemainReceiveBufferCommand}"/>
+                <Button Content="クリア" Grid.Column="7" Grid.Row="1"  IsEnabled="{Binding IsRunning.Value, Converter={StaticResource Invert}}" Command="{Binding ClearRemainSendBufferCommand}"/>
+            </Grid>
+
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <GroupBox Header="制御コード">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Content="STX" Command="{Binding SendControlCodeCommand}" CommandParameter="2"/>
+                        <Button Content="ETX" Grid.Column="1" Command="{Binding SendControlCodeCommand}" CommandParameter="3"/>
+                        <Button Content="EOT" Grid.Column="2" Command="{Binding SendControlCodeCommand}" CommandParameter="4"/>
+                        <Button Content="ENQ" Grid.Row="1" Command="{Binding SendControlCodeCommand}" CommandParameter="5"/>
+                        <Button Content="ACK" Grid.Row="1" Grid.Column="1" Command="{Binding SendControlCodeCommand}" CommandParameter="6"/>
+                        <Button Content="NAK" Grid.Row="1" Grid.Column="2" Command="{Binding SendControlCodeCommand}" CommandParameter="15"/>
+                        <Button Content="CR" Grid.Row="2" Command="{Binding SendControlCodeCommand}" CommandParameter="D"/>
+                        <Button Content="LF" Grid.Row="2" Grid.Column="1" Command="{Binding SendControlCodeCommand}" CommandParameter="A"/>
+                        <CheckBox Content="直接送信" Grid.Row="3" Grid.ColumnSpan="3" VerticalAlignment="Bottom" IsChecked="{Binding DoDirectSendControlCode}"/>
+                    </Grid>
+                </GroupBox>
+                <GroupBox Header="登録済みデータ" Grid.Column="1">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Content="M1" Command="{Binding LoadMemoryCommand}" CommandParameter="0"/>
+                        <Button Content="M2" Grid.Column="1" Command="{Binding LoadMemoryCommand}" CommandParameter="1"/>
+                        <Button Content="M3" Grid.Row="1" Command="{Binding LoadMemoryCommand}" CommandParameter="2"/>
+                        <Button Content="M4" Grid.Row="1" Grid.Column="1" Command="{Binding LoadMemoryCommand}" CommandParameter="3"/>
+                        <CheckBox Content="直接送信" Grid.Row="3" Grid.ColumnSpan="2" VerticalAlignment="Bottom" IsChecked="{Binding DoDirectSendMemory}"/>
+                    </Grid>
+                </GroupBox>
+                <GroupBox Header="ハード制御" Grid.Column="2" IsEnabled="{Binding IsRunning.Value, Converter={StaticResource Invert}}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Content="DTR ON" />
+                        <Button Content="DTR OFF" Grid.Column="1"/>
+                        <Button Content="RTS ON" Grid.Row="1"/>
+                        <Button Content="RTS OFF" Grid.Row="1" Grid.Column="1"/>
+                        <Button Content="XON" Grid.Row="2"/>
+                        <Button Content="XOFF" Grid.Row="2" Grid.Column="1"/>
+                        <Button Content="SET BR" Grid.Row="3"/>
+                        <Button Content="CLR BR" Grid.Row="3" Grid.Column="1"/>
+                    </Grid>
+                </GroupBox>
+            </Grid>
+
+            <TextBox Grid.Row="3" Margin="5" Text="{Binding Message.Value}"/>
+
+            <StackPanel Grid.Row="4" Orientation="Horizontal">
+                <Button Content="送信" Width="100" Command="{Binding SendCommand}" IsEnabled="{Binding IsRunning.Value}"/>
+                <Button Content="クリア" Width="100" Command="{Binding ClearMessageCommand}"/>
+                <Button Content="M1に追加" Width="80" Command="{Binding SaveMemoryCommand}" CommandParameter="0"/>
+                <Button Content="M2に追加" Width="80" Command="{Binding SaveMemoryCommand}" CommandParameter="1"/>
+                <Button Content="M3に追加" Width="80" Command="{Binding SaveMemoryCommand}" CommandParameter="2"/>
+                <Button Content="M4に追加" Width="80" Command="{Binding SaveMemoryCommand}" CommandParameter="3"/>
+            </StackPanel>
+        </Grid>
+        
+    </Grid>
+</Window>
