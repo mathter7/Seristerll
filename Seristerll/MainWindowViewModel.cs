@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
@@ -9,12 +10,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Markup;
+using System.Xml.Serialization;
 using Reactive.Bindings;
 
 namespace Seristerll
 {
 	public class MainWindowViewModel
 	{
+		private const string settingFilePath = "settings.xml";
+
 		private SerialPort serial;
 		private CancellationTokenSource tokenSource;
 
@@ -322,26 +326,36 @@ namespace Seristerll
 
 		private void LoadSettings()
 		{
-			this.Port = Properties.Settings.Default.PortName;
-			this.BaudRate = Properties.Settings.Default.BaudRate;
-			this.DataBits = Properties.Settings.Default.DataBits;
-			this.StopBits = Properties.Settings.Default.StopBits;
-			this.Handshake = Properties.Settings.Default.HandShake;
-			this.serial.DtrEnable = Properties.Settings.Default.DtrEnable;
-			this.serial.RtsEnable = Properties.Settings.Default.RtsEnable;
+			if (!File.Exists(settingFilePath))
+			{
+				return;
+			}
+
+			var serilizer = new XmlSerializer(typeof(SerialSettings));
+			using (var sr = new StreamReader(settingFilePath))
+			{
+				var settings = (SerialSettings)serilizer.Deserialize(sr);
+				if (settings != null)
+				{
+					this.Port = settings.Port;
+					this.BaudRate = settings.BaudRate;
+					this.DataBits = settings.DataBits;
+					this.StopBits = settings.StopBits;
+					this.Handshake = settings.Handshake;
+					this.serial.DtrEnable = settings.DtrEnable;
+					this.serial.RtsEnable = settings.RtsEnable;
+				}
+			}
 		}
 
 		private void SaveSettings()
 		{
-			Properties.Settings.Default.PortName = this.Port;
-			Properties.Settings.Default.BaudRate = this.BaudRate;
-			Properties.Settings.Default.DataBits = this.DataBits;
-			Properties.Settings.Default.StopBits = this.StopBits;
-			Properties.Settings.Default.HandShake = this.Handshake;
-			Properties.Settings.Default.DtrEnable = this.DtrEnable;
-			Properties.Settings.Default.RtsEnable = this.RtsEnable;
-
-			Properties.Settings.Default.Save();
+			using (var sw = new StreamWriter(settingFilePath))
+			{
+				var serilizer = new XmlSerializer(typeof(SerialSettings));
+				var settings = new SerialSettings(this.Port, this.BaudRate, this.DataBits, this.StopBits, this.Handshake, this.DtrEnable, this.RtsEnable);
+				serilizer.Serialize(sw, settings);
+			}
 		}
 
 		private void ClearBufferProperty(ReactivePropertySlim<int> bufferProperty)
