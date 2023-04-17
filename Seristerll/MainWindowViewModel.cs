@@ -1,5 +1,4 @@
-﻿using Reactive.Bindings;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO.Ports;
@@ -10,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Markup;
+using Reactive.Bindings;
 
 namespace Seristerll
 {
@@ -29,13 +29,21 @@ namespace Seristerll
 
 			this.UpdatePorts();
 			//this.Port = this.Ports.FirstOrDefault();
-			this.LoadSettings();
+			try
+			{
+				this.LoadSettings();
+
+			}
+			catch (Exception)
+			{
+
+			}
 
 			this.UpdatePortsCommand.Subscribe(this.UpdatePorts);
 
 			this.StartAsyncCommand.Subscribe(this.StarAsync);
 
-			this.StopCommand = this.IsRunning.ToReactiveCommand();
+			this.StopCommand = this.IsRunning.ToReactiveCommandSlim();
 			this.StopCommand.Subscribe(this.Stop);
 			this.CloseCommand.Subscribe(this.CloseApplication);
 
@@ -69,22 +77,22 @@ namespace Seristerll
 
 		public int[] DataBitsSet { get; } = new int[] { 5, 6, 7, 8 };
 
-		public ReactiveProperty<string> HEXLog { get; set; } = new ReactiveProperty<string>(string.Empty);
+		public ReactivePropertySlim<string> HEXLog { get; set; } = new ReactivePropertySlim<string>(string.Empty);
 
-		public ReactiveProperty<string> CharLog { get; set; } = new ReactiveProperty<string>(string.Empty);
+		public ReactivePropertySlim<string> CharLog { get; set; } = new ReactivePropertySlim<string>(string.Empty);
 
-		public ReactiveProperty<string> TextLog { get; set; } = new ReactiveProperty<string>(string.Empty);
+		public ReactivePropertySlim<string> TextLog { get; set; } = new ReactivePropertySlim<string>(string.Empty);
 
-		public ReactiveProperty<int> RemainReseiveBuffer { get; set; } = new ReactiveProperty<int>();
+		public ReactivePropertySlim<int> RemainReseiveBuffer { get; set; } = new ReactivePropertySlim<int>();
 
-		public ReactiveProperty<int> RemainSendBuffer { get; set; } = new ReactiveProperty<int>();
+		public ReactivePropertySlim<int> RemainSendBuffer { get; set; } = new ReactivePropertySlim<int>();
 
-		public ReactiveProperty<bool> IsCTS { get; set; } = new ReactiveProperty<bool> (false);
+		public ReactivePropertySlim<bool> IsCTS { get; set; } = new ReactivePropertySlim<bool> (false);
 
-		public ReactiveProperty<bool> IsDSR { get; set; } = new ReactiveProperty<bool>(false);
-		public ReactiveProperty<bool> IsRLSD { get; set; } = new ReactiveProperty<bool>(false);
-		public ReactiveProperty<bool> IsXOffR { get; set; } = new ReactiveProperty<bool>(false);
-		public ReactiveProperty<bool> IsXOffS { get; set; } = new ReactiveProperty<bool>(false);
+		public ReactivePropertySlim<bool> IsDSR { get; set; } = new ReactivePropertySlim<bool>(false);
+		public ReactivePropertySlim<bool> IsRLSD { get; set; } = new ReactivePropertySlim<bool>(false);
+		public ReactivePropertySlim<bool> IsXOffR { get; set; } = new ReactivePropertySlim<bool>(false);
+		public ReactivePropertySlim<bool> IsXOffS { get; set; } = new ReactivePropertySlim<bool>(false);
 
 		public bool DoDirectSendControlCode { get; set; }
 
@@ -94,47 +102,47 @@ namespace Seristerll
 
 		public bool RtsEnable { get; set; }
 
-		public ReactiveProperty<bool> IsRunning { get; } = new ReactiveProperty<bool>(false);
+		public ReactivePropertySlim<bool> IsRunning { get; } = new ReactivePropertySlim<bool>(false);
 
-		public ReactiveProperty<string> Message { get; set; } = new ReactiveProperty<string>(string.Empty);
+		public ReactivePropertySlim<string> Message { get; set; } = new ReactivePropertySlim<string>(string.Empty);
 
-		public ReactiveCommand ClearLogCommand { get; } = new ReactiveCommand();
+		public ReactiveCommandSlim ClearLogCommand { get; } = new ReactiveCommandSlim();
 
-		public ReactiveCommand SaveLogCommand { get; } = new ReactiveCommand();
+		public ReactiveCommandSlim SaveLogCommand { get; } = new ReactiveCommandSlim();
 
-		public ReactiveCommand UpdatePortsCommand { get; } = new ReactiveCommand();
+		public ReactiveCommandSlim UpdatePortsCommand { get; } = new ReactiveCommandSlim();
 
 		public AsyncReactiveCommand StartAsyncCommand { get; } = new AsyncReactiveCommand();
 
-		public ReactiveCommand StopCommand { get; } = new ReactiveCommand();
+		public ReactiveCommandSlim StopCommand { get; } = new ReactiveCommandSlim();
 
-		public ReactiveCommand<Window> CloseCommand { get; } = new ReactiveCommand<Window>();
+		public ReactiveCommandSlim<Window> CloseCommand { get; } = new ReactiveCommandSlim<Window>();
 
-		public ReactiveCommand ClearSendBufferCommand { get; } = new ReactiveCommand();
+		public ReactiveCommandSlim ClearSendBufferCommand { get; } = new ReactiveCommandSlim();
 
-		public ReactiveCommand ClearReceiveBufferCommand { get; } = new ReactiveCommand();
+		public ReactiveCommandSlim ClearReceiveBufferCommand { get; } = new ReactiveCommandSlim();
 
-		public ReactiveCommand<string> SendControlCodeCommand { get; } = new ReactiveCommand<string>();
+		public ReactiveCommandSlim<string> SendControlCodeCommand { get; } = new ReactiveCommandSlim<string>();
 
-		public ReactiveCommand<string> LoadMemoryCommand { get; } = new ReactiveCommand<string>();
+		public ReactiveCommandSlim<string> LoadMemoryCommand { get; } = new ReactiveCommandSlim<string>();
 
-		public ReactiveCommand<string> SaveMemoryCommand { get; } = new ReactiveCommand<string>();
+		public ReactiveCommandSlim<string> SaveMemoryCommand { get; } = new ReactiveCommandSlim<string>();
 
-		public ReactiveCommand SendCommand { get; } = new ReactiveCommand();
+		public ReactiveCommandSlim SendCommand { get; } = new ReactiveCommandSlim();
 
-		public ReactiveCommand ClearMessageCommand { get; } = new ReactiveCommand();
+		public ReactiveCommandSlim ClearMessageCommand { get; } = new ReactiveCommandSlim();
 
-		public ReactiveCommand ClearRemainReceiveBufferCommand { get; } = new ReactiveCommand();
+		public ReactiveCommandSlim ClearRemainReceiveBufferCommand { get; } = new ReactiveCommandSlim();
 
-		public ReactiveCommand ClearRemainSendBufferCommand { get; } = new ReactiveCommand();
+		public ReactiveCommandSlim ClearRemainSendBufferCommand { get; } = new ReactiveCommandSlim();
 
-		public ReactiveCommand<bool> ControlDTRCommand { get; } = new ReactiveCommand<bool>();
+		public ReactiveCommandSlim<bool> ControlDTRCommand { get; } = new ReactiveCommandSlim<bool>();
 
-		public ReactiveCommand<bool> ControlRTSCommand { get; } = new ReactiveCommand<bool>();
+		public ReactiveCommandSlim<bool> ControlRTSCommand { get; } = new ReactiveCommandSlim<bool>();
 
-		public ReactiveCommand<bool> ControlXONOFFCommand { get; } = new ReactiveCommand<bool>();
+		public ReactiveCommandSlim<bool> ControlXONOFFCommand { get; } = new ReactiveCommandSlim<bool>();
 
-		public ReactiveCommand<bool> ControlBRCommand { get; } = new ReactiveCommand<bool>();
+		public ReactiveCommandSlim<bool> ControlBRCommand { get; } = new ReactiveCommandSlim<bool>();
 
 		
 
@@ -336,7 +344,7 @@ namespace Seristerll
 			Properties.Settings.Default.Save();
 		}
 
-		private void ClearBufferProperty(ReactiveProperty<int> bufferProperty)
+		private void ClearBufferProperty(ReactivePropertySlim<int> bufferProperty)
 		{
 			bufferProperty.Value = 0;
 		}
